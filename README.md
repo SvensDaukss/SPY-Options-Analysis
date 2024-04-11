@@ -1,4 +1,4 @@
-# CIS241_SPYProjectF24
+# SPY-Options-Analysis
 
 ## Svens Daukss
 ## James Mullins
