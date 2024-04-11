@@ -23,10 +23,10 @@ void processLine(char* line) {
 void readCSVFile(const char* filepath, MarketData** data, int* dataSize) {
     FILE* file = fopen(filepath, "r");
 	if (!file) {
-		perror("Error opening file");
+		perror("Error Opening File");
 		return;
 	}
-	printf("File opened successfully: %s\n", filepath);
+	printf("File Opened Successfully: %s\n\n", filepath);
 
     char line[MAX_LINE_LENGTH];
     int capacity = INITIAL_SIZE;
