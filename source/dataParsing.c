@@ -3,21 +3,26 @@
 #include <string.h>
 #include "dataParsing.h"
 
-#define MAX_LINE_LENGTH 2331
-#define INITIAL_SIZE 100
+#define MAX_ROW_LENGTH 2332
 
 void parseLine(char* line, MarketData* data) {
-    sscanf(line, "%10[^,],%f,%d,%d,%d", data->date, &data->putCallRatio, &data->putVolume, &data->callVolume, &data->totalVolume);
+    sscanf(line, "%10[^,],%f,%d,%d,%d", data->date, &data->putCallRatio, &data->putVolume, &data->callVolume, &data->totalOptionsVolume);
 }
 
-void printMarketData(const MarketData* data) {
-	printf("Date: %s, Put/Call Ratio: %.2f, Put Volume: %d, Call Volume: %d, Total Volume: %d\n", data->date, data->putCallRatio, data->putVolume, data->callVolume, data->totalVolume);
+void printMarketData(const MarketData* data, int rowNumber) {
+    printf(" %d |    %s    |         %.2f         |        %d        |       %d        |           %d\n-----------------------------------------------------------------------------------------------------------------\n", rowNumber, data->date, data->putCallRatio, data->putVolume, data->callVolume, data->totalOptionsVolume);
 }
 
-void processLine(char* line) {
-    MarketData data;
-    parseLine(line, &data);
-    printMarketData(&data);
+void printMarketDataRange(const MarketData* data, int dataSize, int startRow, int numberOfRowsToPrint) {
+    printf("-----------------------------------------------------------------------------------------------------------------\n # |     Date     |    Put/Call Ratio    |      Put Volume      |     Call Volume     |   Total Options Volume \n-----------------------------------------------------------------------------------------------------------------\n");
+    for (int i = startRow; i < startRow + numberOfRowsToPrint && i < dataSize; i++) {
+        printMarketData(&data[i], i + 1);
+    }
+}
+
+void processLine(char* line, MarketData* data, int rowNumber) {
+    parseLine(line, data);
+    printMarketData(data, rowNumber);
 }
 
 void readCSVFile(const char* filepath, MarketData** data, int* dataSize) {
@@ -25,26 +30,28 @@ void readCSVFile(const char* filepath, MarketData** data, int* dataSize) {
 	if (!file) {
 		perror("Error Opening File");
 		return;
+    } else {
+		printf("File Opened Successfully: %s\n\n", filepath);
 	}
-	printf("File Opened Successfully: %s\n\n", filepath);
 
-    char line[MAX_LINE_LENGTH];
-    int capacity = INITIAL_SIZE;
-    *dataSize = 0;
-    *data = malloc(capacity * sizeof(MarketData));
+	// This is the logic to ignore the first 2 rows in spxpc.csv
+    char line[MAX_ROW_LENGTH];
+    fgets(line, MAX_ROW_LENGTH, file);
+    fgets(line, MAX_ROW_LENGTH, file);
 
-    // Logic for reading and ignoring the header
-    fgets(line, MAX_LINE_LENGTH, file);
-
-    while (fgets(line, MAX_LINE_LENGTH, file)) {
-        if (*dataSize >= capacity) {
-            capacity *= 2;
-            *data = realloc(*data, capacity * sizeof(MarketData));
-        }
-        
-        parseLine(line, &((*data)[*dataSize]));
-        (*dataSize)++;
+    int count = 0;
+    while (fgets(line, MAX_ROW_LENGTH, file)) {
+        *data = realloc(*data, (count + 1) * sizeof(MarketData));
+        if (*data == NULL) {
+            fprintf(stderr, "Memory reallocation failed\n");
+            fclose(file);
+            return;
+        } else {
+			parseLine(line, &((*data)[count])); // Parse the literal numbers and data line into the array
+			count++;
+		}
     }
 
     fclose(file);
+    *dataSize = count; // Update dataSize with the actual amount of lines instead of 0.
 }

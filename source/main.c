@@ -4,27 +4,26 @@
 #include "dataAnalysis.h"
 
 int main() {
-    MarketData* data = NULL;
-    int dataSize = 0;
 	
-	const char* filepath = "/mnt/c/Users/dauks/Desktop/SPY-Options-Analysis/data/spxpc.csv";
+	const char* filepath = "/mnt/c/Users/ComputerName/Desktop/SPY-Options-Analysis/data/spxpc.csv"; // Adjust this to where your spxpc.csv is actually located
 
+	int dataSize = 0;
+    MarketData* data = NULL;
+	data = malloc(dataSize * sizeof(MarketData));
+	
+	if (data == NULL) {
+		fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+    }
+	
     readCSVFile(filepath, &data, &dataSize);
-    printf("Data Size: %d\n\n", dataSize);
 	
-	// Raw data from the spxpc.csv
-	for (int i = 0; i < dataSize && i < 2331; i++) {
-        printMarketData(&data[i]);
-    }
-	
-	// Printing Calculations from dataAnalysis.c
-	// printf("\n\nTEST void analyzeData(MarketData* data, int dataSize){}\n");
+	int startRow = 0; // Adjust this for the row number you want printed first
+	int numberOfRowsToPrint = dataSize; // Adjust this for the number of rows to print after the startRow
+    printMarketDataRange(data, dataSize, startRow, numberOfRowsToPrint);
 	analyzeData(data, dataSize);
-	
-	// Memory Allocation
-    if (data) {
-        free(data);
-    }
+
+    free(data);
 
     return 0;
 }
